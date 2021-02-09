@@ -49,13 +49,15 @@ class Trainer:
 		batches_x = [array(self.x[i : i + self.batchsize]) for i in range(0, len(self.x), self.batchsize)]
 		batches_y = [array(self.y[i : i + self.batchsize]) for i in range(0, len(self.y), self.batchsize)]
 		batches_x, batches_y = self.shuffle_together(batches_x, batches_y)
+		info = []
 		for epoch in range(epochs):
 			i = 0
 			for batch_x, batch_y in zip(batches_x, batches_y):
 				self.train_batch(batch_x, batch_y)
 				report(i, self.batchsize, len(self.x))
 				i += 1
-			self.evaluate(epoch)
+			info.append(self.evaluate(epoch))
+		return info
 
 	def evaluate(self, epoch):
 		loss = correct = 0
@@ -63,10 +65,13 @@ class Trainer:
 			a, _ = self.network.infer(x)
 			loss += self.loss.loss(a[-1], y)
 			correct += argmax(a[-1])==argmax(y)
+		acc = 100*correct / len(self.x_test)
+		loss = loss / len(self.x_test)
 		print("\x1b[2K") # clear line
 		print(f"Epoch {epoch+1}")
-		print("Accuracy: " + str(100*correct / len(self.x_test)) + "%")
-		print("Loss: " + str(round(loss / len(self.x_test), 4)))
+		print("Accuracy:", acc, "%")
+		print("Loss:", round(loss, 4))
+		return {"epoch": epoch+1, "acc": acc, "loss": loss}
 
 	@staticmethod
 	def report_train(i, batchsize, length):

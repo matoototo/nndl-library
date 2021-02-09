@@ -9,12 +9,12 @@ from numpy import array
 
 
 def one_hot(labels):
-    ys = []
-    for label in labels:
-        y = [0] * 10
-        y[label] = 1.0
-        ys.append(array(y))
-    return array(ys)
+	ys = []
+	for label in labels:
+		y = [0] * 10
+		y[label] = 1.0
+		ys.append(array(y))
+	return array(ys)
 
 
 mnist = MNIST("./mnist")

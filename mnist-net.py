@@ -22,6 +22,8 @@ mnist.gz = True
 images, labels = mnist.load_training()
 images_test, labels_test = mnist.load_testing()
 
+images = array(images)/255.
+images_test = array(images_test)/255.
 labels = one_hot(labels)
 labels_test = one_hot(labels_test)
 

@@ -1,18 +1,20 @@
-from numpy import exp, sum, log
+from numpy import exp, sum, log, dot
 from numpy.linalg import norm
 
 
 def sigmoid(z):
 	return 1 / (1 + exp(-z))
 
-
 def softmax(z):
 	return exp(z) / sum(exp(z), axis=0)
-
 
 def sigmoid_prime(z):
 	sig_z = sigmoid(z)
 	return sig_z * (1 - sig_z)
+
+def softmax_prime(z):
+	soft_z = softmax(z)
+	return soft_z*(1-soft_z)
 
 
 class Loss:
@@ -65,3 +67,21 @@ class CrossEntropy(Loss):
 	@staticmethod
 	def delta(a, y, z):
 		return CrossEntropy.partial_a(a, y)
+
+
+class LogLikelihood(Loss):
+	@staticmethod
+	def loss(x, y):
+		return dot(y.T, -log(x))
+
+	@staticmethod
+	def partial_a(a, y):
+		return dot(y.T, -a)
+
+	@staticmethod
+	def delta(a, y, z):
+		return a-y
+
+	@staticmethod
+	def delta_term(w):
+		return softmax_prime(w)

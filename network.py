@@ -15,12 +15,9 @@ class Layer:
 
 
 class Network:
-	def __init__(self, sizes, activation):
-		"""sizes (np.array<int>) : an array of integers denoting the sizes of each layer
-		activation (method) : the activation function"""
-		self.layers = []
-		for i in range(1, len(sizes)):
-			self.layers.append(Layer(sizes[i - 1], sizes[i], activation))
+	def __init__(self, layers):
+		"""layers (array(Layer)) : an array of Layers comprising the network"""
+		self.layers = layers
 
 	def infer(self, a):
 		"""a (np.array<float>) : an array of floats -- the input to the network"""

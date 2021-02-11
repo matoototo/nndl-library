@@ -1,9 +1,8 @@
-from network import Network
+from network import Network, Layer
 from trainer import Trainer
-from functions import sigmoid, MSE, CrossEntropy
+from functions import sigmoid, MSE, CrossEntropy, softmax
 from numpy import array
 from mnist import MNIST
-from numpy import array
 
 # An example using the nndl library on the MNIST dataset.
 
@@ -27,7 +26,7 @@ images_test = array(images_test)/255.
 labels = one_hot(labels)
 labels_test = one_hot(labels_test)
 
-net = Network(array([784, 30, 10]), sigmoid)
-trainer = Trainer(net, CrossEntropy, 2, 64, images, labels, images_test, labels_test)
+net = Network([Layer(784, 10, sigmoid), Layer(30, 10, softmax)])
+trainer = Trainer(net, CrossEntropy, 4.0, 64, images, labels, images_test, labels_test)
 
 trainer.SGD(10, Trainer.report_train)

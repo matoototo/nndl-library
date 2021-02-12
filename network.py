@@ -3,12 +3,13 @@ from functions import softmax
 
 
 class Layer:
-	def __init__(self, inputs, size, activation):
+	def __init__(self, inputs, size, activation, reg):
 		"""inputs (int) : number of neurons in the previous layer
 		size (int) : number of neurons in the current layer"""
 		self.weights = random.normal(0, 1, (size, inputs))
 		self.biases = random.normal(0, 1, (size))
 		self.act = activation
+		self.reg = reg
 
 	def input_size(self):
 		return len(self.weights[0])

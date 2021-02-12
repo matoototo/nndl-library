@@ -1,8 +1,9 @@
 from network import Network, Layer
 from trainer import Trainer
-from functions import sigmoid, MSE, CrossEntropy, softmax
+from functions import sigmoid, MSE, CrossEntropy, softmax, L2Reg
 from numpy import array
 from mnist import MNIST
+from matplotlib import pyplot
 
 # An example using the nndl library on the MNIST dataset.
 
@@ -21,12 +22,24 @@ mnist.gz = True
 images, labels = mnist.load_training()
 images_test, labels_test = mnist.load_testing()
 
-images = array(images)/255.
-images_test = array(images_test)/255.
+images = array(images) / 255.
+images_test = array(images_test) / 255.
 labels = one_hot(labels)
 labels_test = one_hot(labels_test)
 
-net = Network([Layer(784, 10, sigmoid), Layer(30, 10, softmax)])
-trainer = Trainer(net, CrossEntropy, 4.0, 64, images, labels, images_test, labels_test)
+colours = ["b", "g", "r", "c", "m"]
 
-trainer.SGD(10, Trainer.report_train)
+
+# run two runs one, with reg on without and plot the results
+
+for i in range(2):
+	l2 = L2Reg(i * 0.1)
+	net = Network([Layer(784, 30, sigmoid, l2), Layer(30, 10, sigmoid, l2)])
+	trainer = Trainer(net, CrossEntropy, 0.5, 10, images[0:1000], labels[0:1000], images_test, labels_test)
+
+	data = trainer.SGD(400, Trainer.report_train)
+	x_points = [point["acc"] for point in data]
+	y_points = [point["epoch"] for point in data]
+	pyplot.plot(y_points, x_points, colours[i])
+
+pyplot.show()

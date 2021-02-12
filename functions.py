@@ -1,20 +1,37 @@
 from numpy import exp, sum, log, dot
+from scipy.special import expit, softmax as sft
 from numpy.linalg import norm
 
 
 def sigmoid(z):
-	return 1 / (1 + exp(-z))
+	return expit(z)  # same as below, just without overflow
+	# return 1 / (1 + exp(-z))
+
 
 def softmax(z):
-	return exp(z) / sum(exp(z), axis=0)
+	return sft(z)  # same as below, just without overflow
+	# return exp(z) / sum(exp(z), axis=0)
+
 
 def sigmoid_prime(z):
 	sig_z = sigmoid(z)
 	return sig_z * (1 - sig_z)
 
+
 def softmax_prime(z):
 	soft_z = softmax(z)
-	return soft_z*(1-soft_z)
+	return soft_z * (1 - soft_z)
+
+
+class L2Reg:
+	def __init__(self, lmbda):
+		self.lmbda = lmbda
+
+	def cost_term(self, net):
+		return self.lmbda * sum([sum(layer.weights * layer.weights) for layer in net.layers])
+
+	def partial_w(self, layer):
+		return layer.weights * self.lmbda
 
 
 class Loss:
@@ -57,8 +74,9 @@ class MSE(Loss):
 class CrossEntropy(Loss):
 	@staticmethod
 	def loss(x, y):
+		epsilon = 1e-5  # to avoid limited float precision causing log(0)
 		assert len(x) == len(y)
-		return -sum(y * log(x) + (1 - y) * log(1 - x)) / len(x)
+		return -sum(y * log(x + epsilon) + (1 - y) * log(1 - x + epsilon)) / len(x)
 
 	@staticmethod
 	def partial_a(a, y):
@@ -80,7 +98,7 @@ class LogLikelihood(Loss):
 
 	@staticmethod
 	def delta(a, y, z):
-		return a-y
+		return a - y
 
 	@staticmethod
 	def delta_term(w):

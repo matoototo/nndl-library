@@ -47,10 +47,6 @@ class Loss:
 	def delta(a, y, z):
 		return
 
-	@staticmethod
-	def delta_term(w):
-		return 1
-
 
 class MSE(Loss):
 	@staticmethod
@@ -65,10 +61,6 @@ class MSE(Loss):
 	@staticmethod
 	def delta(a, y, z):
 		return MSE.partial_a(a, y) * sigmoid_prime(z)
-
-	@staticmethod
-	def delta_term(w):
-		return sigmoid_prime(w)
 
 
 class CrossEntropy(Loss):
@@ -99,7 +91,3 @@ class LogLikelihood(Loss):
 	@staticmethod
 	def delta(a, y, z):
 		return a - y
-
-	@staticmethod
-	def delta_term(w):
-		return softmax_prime(w)

@@ -20,7 +20,7 @@ class Trainer:
 
 	def gradient_descent(self, nablas_w, nablas_b):
 		for ndw, ndb, layer in zip(nablas_w, nablas_b, self.network.layers):
-			layer.weights -= (self.lr * ndw + layer.reg.partial_w(layer)/len(self.x))
+			layer.weights -= self.lr * (ndw + layer.reg.partial_w(layer)/len(self.x))
 			layer.biases -= self.lr * ndb
 
 	def backprop(self, x, y):
@@ -29,7 +29,7 @@ class Trainer:
 		nablas_w = [outer(a[-2], delta).T]
 		deltas = [delta]
 		for layer, w_in, act in zip(self.network.layers[::-1], z[::-1][1:], a[::-1][2:]):
-			delta = (layer.weights.T @ deltas[-1]) * self.loss.delta_term(w_in)
+			delta = (layer.weights.T @ deltas[-1]) * sigmoid_prime(w_in)
 			deltas.append(delta)
 			nablas_w.append(outer(act, delta).T)
 		return array(nablas_w[::-1], dtype=object), array(deltas[::-1], dtype=object)

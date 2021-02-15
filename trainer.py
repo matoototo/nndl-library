@@ -1,6 +1,6 @@
 from network import Network
 from functions import sigmoid_prime, Loss
-from numpy import tile, outer, array, argmax
+from numpy import tile, outer, array, argmax, zeros_like
 from random import shuffle
 
 
@@ -32,18 +32,16 @@ class Trainer:
 			delta = (layer.weights.T @ deltas[-1]) * sigmoid_prime(w_in)
 			deltas.append(delta)
 			nablas_w.append(outer(act, delta).T)
-		return array(nablas_w[::-1], dtype=object), array(deltas[::-1], dtype=object)
+		return nablas_w[::-1], deltas[::-1]
 
 	def train_batch(self, batch_x, batch_y):
+		nablas_w = [zeros_like(l.weights) for l in self.network.layers]
+		nablas_b = [zeros_like(l.biases) for l in self.network.layers]
 		for x, y in zip(batch_x, batch_y):
 			d_w, d_b = self.backprop(x, y)
-			try:
-				nablas_w += d_w
-				nablas_b += d_b
-			except:
-				nablas_w = d_w
-				nablas_b = d_b
-		self.gradient_descent(nablas_w / len(batch_x), nablas_b / len(batch_x))
+			nablas_w = [a+b for a, b in zip(d_w, nablas_w)]
+			nablas_b = [a+b for a, b in zip(d_b, nablas_b)]
+		self.gradient_descent(self.div_arrs(nablas_w, len(batch_x)), self.div_arrs(nablas_b, len(batch_x)))
 
 	def SGD(self, epochs, report):
 		batches_x = [array(self.x[i : i + self.batchsize]) for i in range(0, len(self.x), self.batchsize)]
@@ -83,3 +81,7 @@ class Trainer:
 		shuffle(xy)
 		x, y = zip(*xy)
 		return x, y
+
+	@staticmethod
+	def div_arrs(arrays, divisor):
+		return [x/divisor for x in arrays]

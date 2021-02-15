@@ -30,10 +30,10 @@ labels_test = one_hot(labels_test)
 colours = ["b", "g", "r", "c", "m"]
 
 
-# run two runs one, with reg on without and plot the results
+# run two runs: one with reg and one without and plot the results
 
 for i in range(2):
-	l2 = L2Reg(i * 0.1)
+	l2 = L2Reg(i * 0.5)
 	net = Network([Layer(784, 30, sigmoid, l2), Layer(30, 10, sigmoid, l2)])
 	trainer = Trainer(net, CrossEntropy, 0.5, 10, images[0:1000], labels[0:1000], images_test, labels_test)
 

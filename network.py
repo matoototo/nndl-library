@@ -27,4 +27,4 @@ class Network:
 		for layer in self.layers:
 			z.append((layer.weights @ a[-1]) + layer.biases)
 			a.append(layer.act(z[-1]))
-		return a, array(z, dtype=object)
+		return a, z

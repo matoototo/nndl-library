@@ -1,4 +1,4 @@
-from numpy import exp, sum, log, dot
+from numpy import exp, sum, log, dot, sign
 from scipy.special import expit, softmax as sft
 from numpy.linalg import norm
 
@@ -32,6 +32,16 @@ class L2Reg:
 
 	def partial_w(self, layer):
 		return layer.weights * self.lmbda
+
+class L1Reg:
+	def __init__(self, lmbda):
+		self.lmbda = lmbda
+
+	def cost_term(self, net):
+		return self.lmbda * sum([sum(layer.weights) for layer in net.layers])
+
+	def partial_w(self, layer):
+		return sign(layer.weights) * self.lmbda
 
 
 class Loss:

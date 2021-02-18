@@ -24,12 +24,15 @@ class Trainer:
 			layer.biases -= self.lr * ndb
 
 	def backprop(self, x, y):
+		self.network.generate_masks(True) # set dropout masks
 		a, z = self.network.infer(x)
 		delta = self.loss.delta(a[-1], y, z[-1])
 		nablas_w = [outer(a[-2], delta).T]
 		deltas = [delta]
-		for layer, w_in, act in zip(self.network.layers[::-1], z[::-1][1:], a[::-1][2:]):
-			delta = (layer.weights.T @ deltas[-1]) * sigmoid_prime(w_in)
+		n = len(self.network.layers)
+		layers = self.network.layers # makes delta term easier to read
+		for l, w_in, act in zip(range(n-1, 0, -1), z[::-1][1:], a[::-1][2:]):
+			delta = (layers[l].weights.T @ deltas[-1]) * sigmoid_prime(w_in) * layers[l-1].dropout_mask
 			deltas.append(delta)
 			nablas_w.append(outer(act, delta).T)
 		return nablas_w[::-1], deltas[::-1]
@@ -59,6 +62,7 @@ class Trainer:
 
 	def evaluate(self, epoch):
 		loss = correct = 0
+		self.network.generate_masks(False) # remove dropout
 		for x, y in zip(self.x_test, self.y_test):
 			a, _ = self.network.infer(x)
 			loss += self.loss.loss(a[-1], y)

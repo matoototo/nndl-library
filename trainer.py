@@ -40,33 +40,32 @@ class Trainer:
 	def train_batch(self, batch_x, batch_y):
 		nablas_w = [zeros_like(l.weights) for l in self.network.layers]
 		nablas_b = [zeros_like(l.biases) for l in self.network.layers]
-		correct = loss = 0
+		stats = array((0.0, 0.0))
 		for x, y in zip(batch_x, batch_y):
-			d_w, d_b, (c, l) = self.backprop(x, y)
-			correct += c
-			loss += l
+			d_w, d_b, d_s = self.backprop(x, y)
+			stats += d_s
 			nablas_w = [a+b for a, b in zip(d_w, nablas_w)]
 			nablas_b = [a+b for a, b in zip(d_b, nablas_b)]
 		self.gradient_descent(self.div_arrs(nablas_w, len(batch_x)), self.div_arrs(nablas_b, len(batch_x)))
-		return (correct, loss)
+		return stats
 
-	def SGD(self, epochs, report):
+
+	def SGD(self, epochs, **kwargs):
 		batches_x = [array(self.x[i : i + self.batchsize]) for i in range(0, len(self.x), self.batchsize)]
 		batches_y = [array(self.y[i : i + self.batchsize]) for i in range(0, len(self.y), self.batchsize)]
 		batches_x, batches_y = self.shuffle_together(batches_x, batches_y)
 		info = {"train": [], "test": []}
 		for epoch in range(epochs):
 			i = 0
-			loss = correct = 0
+			stats = array((0.0, 0.0))
 			for batch_x, batch_y in zip(batches_x, batches_y):
-				c, l = self.train_batch(batch_x, batch_y)
-				correct += c
-				loss += l
-				report(i, self.batchsize, len(self.x))
+				d_s = self.train_batch(batch_x, batch_y)
+				stats += d_s
+				self.report_train(i, self.batchsize, len(self.x))
 				i += 1
-			info["train"].append({"epoch": epoch, "acc": 100*correct/len(self.x), "loss": loss/len(self.x)})
+			info["train"].append({"epoch": epoch, "acc": 100*stats[0]/len(self.x), "loss": stats[1]/len(self.x)})
 			info["test"].append(self.evaluate(epoch))
-			self.report_stats(info)
+			self.report_stats(info, **kwargs)
 		return info
 
 	def evaluate(self, epoch):
@@ -78,25 +77,25 @@ class Trainer:
 			correct += argmax(a[-1])==argmax(y)
 		acc = 100*correct / len(self.x_test)
 		loss = loss / len(self.x_test)
-		return {"epoch": epoch+1, "acc": acc, "loss": loss}
+		return {"epoch": epoch, "acc": acc, "loss": loss}
 
 	def stats(self, x, y):
 		return (argmax(x)==argmax(y), self.loss.loss(x, y))
 
 	@staticmethod
-	def report_stats(info):
+	def report_stats(info, epoch = True, te_acc = True, te_loss = True, tr_acc = True, tr_loss = True):
 		test = info["test"][-1]
 		train = info["train"][-1]
 		print("\x1b[2K") # clear line
-		print("Epoch", test["epoch"]+1)
-		print("Test Accuracy:", test["acc"], "%")
-		print("Test Loss:", round(test["loss"], 4))
-		print("Train Accuracy:", train["acc"], "%")
-		print("Train Loss:", round(train["loss"], 4))
+		if (epoch): print("Epoch", test["epoch"]+1)
+		if (te_acc): print("Test Accuracy:", test["acc"], "%")
+		if (te_loss): print("Test Loss:", round(test["loss"], 4))
+		if (tr_acc): print("Train Accuracy:", train["acc"], "%")
+		if (tr_loss): print("Train Loss:", round(train["loss"], 4))
 
 	@staticmethod
 	def report_train(i, batchsize, length):
-		if (not i%20): print(str(i*batchsize) + "/" + str(length), end='\r')
+		if (not i%5): print(str(i*batchsize) + "/" + str(length), end='\r')
 
 	@staticmethod
 	def shuffle_together(x, y):

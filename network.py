@@ -1,6 +1,7 @@
 from numpy import random, dot, array, stack, tile
 from random import random as rfloat, seed
 from functions import softmax
+import pickle
 
 
 class Layer:
@@ -47,3 +48,12 @@ class Network:
 	def generate_masks(self, train = True):
 		for layer in self.layers:
 			layer.dropout_mask = layer.generate_mask(train)
+
+	def save(self, path):
+		with open(path, "wb") as output:
+			pickle.dump(self, output, pickle.HIGHEST_PROTOCOL)
+
+	@staticmethod
+	def load(path):
+		with open(path, "rb") as input:
+			return pickle.load(input)

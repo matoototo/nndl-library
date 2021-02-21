@@ -11,7 +11,7 @@ class Layer:
 		activation (func) : function used as the activation
 		reg (Reg) : used regularization
 		dropout (float) : dropout factor, [0, 1]"""
-		self.weights = random.normal(0, 1, (size, inputs))
+		self.weights = random.normal(0, pow(1/inputs, 0.5), (size, inputs))
 		self.biases = random.normal(0, 1, (size))
 		self.act = activation
 		self.reg = reg

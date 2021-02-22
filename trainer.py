@@ -50,11 +50,12 @@ class Trainer:
 		return stats
 
 
-	def SGD(self, epochs, **kwargs):
+	def SGD(self, epochs, early_stop = float("inf"), **kwargs):
 		batches_x = [array(self.x[i : i + self.batchsize]) for i in range(0, len(self.x), self.batchsize)]
 		batches_y = [array(self.y[i : i + self.batchsize]) for i in range(0, len(self.y), self.batchsize)]
 		batches_x, batches_y = self.shuffle_together(batches_x, batches_y)
 		info = {"train": [], "test": []}
+		current_best = 0
 		for epoch in range(epochs):
 			i = 0
 			stats = array((0.0, 0.0))
@@ -66,6 +67,8 @@ class Trainer:
 			info["train"].append({"epoch": epoch, "acc": 100*stats[0]/len(self.x), "loss": stats[1]/len(self.x)})
 			info["test"].append(self.evaluate(epoch))
 			self.report_stats(info, **kwargs)
+			if (info["test"][epoch]["loss"] < info["test"][current_best]["loss"]): current_best = epoch
+			elif (epoch-current_best == early_stop): break
 		return info
 
 	def evaluate(self, epoch):

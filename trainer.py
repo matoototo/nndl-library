@@ -1,12 +1,12 @@
 from network import Network
 from functions import sigmoid_prime, Loss
-from numpy import tile, outer, array, argmax, zeros_like
+from numpy import tile, outer, array, argmax, zeros_like, zeros
 from random import shuffle
 
 
 class Trainer:
 	"""A trainer class that controls the training of the network."""
-	def __init__(self, network: Network, loss: Loss, lr: float, batchsize: int, x, y, x_test, y_test):
+	def __init__(self, network: Network, loss: Loss, lr: float, batchsize: int, x, y, x_test, y_test, momentum: float = 0.0):
 		"""loss (Loss) : the loss function to use
 		lr (float) : learning rate"""
 		self.network = network
@@ -17,11 +17,16 @@ class Trainer:
 		self.y = y
 		self.x_test = x_test
 		self.y_test = y_test
+		self.momentum = momentum
+		self.vws = [zeros_like(layer.weights) for layer in self.network.layers]
+		self.vbs = [zeros_like(layer.biases) for layer in self.network.layers]
 
 	def gradient_descent(self, nablas_w, nablas_b):
-		for ndw, ndb, layer in zip(nablas_w, nablas_b, self.network.layers):
-			layer.weights -= self.lr * (ndw + layer.reg.partial_w(layer)/len(self.x))
-			layer.biases -= self.lr * ndb
+		self.vws = [vw*self.momentum - ndw*self.lr for vw, ndw in zip(self.vws, nablas_w)]
+		self.vbs = [vb*self.momentum - ndb*self.lr for vb, ndb in zip(self.vbs, nablas_b)]
+		for layer, vw, vb in zip(self.network.layers, self.vws, self.vbs):
+			layer.weights -= self.lr*layer.reg.partial_w(layer)/len(self.x) - vw
+			layer.biases -= -vb
 
 	def backprop(self, x, y):
 		self.network.generate_masks(True) # set dropout masks

@@ -1,3 +1,5 @@
 /mnist
 /.vscode
 /__pycache__
+/weights
+/test.py

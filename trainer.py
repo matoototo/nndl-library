@@ -6,7 +6,7 @@ from random import shuffle
 
 class Trainer:
 	"""A trainer class that controls the training of the network."""
-	def __init__(self, network: Network, loss: Loss, lr: float, batchsize: int, x, y, x_test, y_test, momentum: float = 0.0):
+	def __init__(self, network: Network, loss: Loss, lr: float, batchsize: int, x, y, x_test, y_test, momentum: float = 0.0, nesterov = True):
 		"""loss (Loss) : the loss function to use
 		lr (float) : learning rate"""
 		self.network = network
@@ -20,13 +20,18 @@ class Trainer:
 		self.momentum = momentum
 		self.vws = [zeros_like(layer.weights) for layer in self.network.layers]
 		self.vbs = [zeros_like(layer.biases) for layer in self.network.layers]
+		self.nesterov = nesterov
 
 	def gradient_descent(self, nablas_w, nablas_b):
-		self.vws = [vw*self.momentum - ndw*self.lr for vw, ndw in zip(self.vws, nablas_w)]
-		self.vbs = [vb*self.momentum - ndb*self.lr for vb, ndb in zip(self.vbs, nablas_b)]
+		term = 1+self.momentum if self.nesterov else 1
+		self.vws = [vw*self.momentum - term*ndw*self.lr for vw, ndw in zip(self.vws, nablas_w)]
+		self.vbs = [vb*self.momentum - term*ndb*self.lr for vb, ndb in zip(self.vbs, nablas_b)]
 		for layer, vw, vb in zip(self.network.layers, self.vws, self.vbs):
 			layer.weights -= self.lr*layer.reg.partial_w(layer)/len(self.x) - vw
 			layer.biases -= -vb
+		if self.nesterov:
+			self.vws = [vw + self.lr*ndw for vw, ndw in zip(self.vws, nablas_w)]
+			self.vbs = [vb + self.lr*ndb for vb, ndb in zip(self.vbs, nablas_b)]
 
 	def backprop(self, x, y):
 		self.network.generate_masks(True) # set dropout masks
@@ -65,6 +70,7 @@ class Trainer:
 			i = 0
 			stats = array((0.0, 0.0))
 			for batch_x, batch_y in zip(batches_x, batches_y):
+				# self.momentum = min(self.momentum_goal, 1-3/((epoch*len(self.x)+i*self.batchsize)/50000+5)) # momentum warmup
 				d_s = self.train_batch(batch_x, batch_y)
 				stats += d_s
 				self.report_train(i, self.batchsize, len(self.x))

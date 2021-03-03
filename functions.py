@@ -1,4 +1,4 @@
-from numpy import exp, sum, log, dot, sign
+from numpy import exp, sum, log, dot, sign, max
 from scipy.special import expit, softmax as sft
 from numpy.linalg import norm
 
@@ -9,8 +9,9 @@ def sigmoid(z):
 
 
 def softmax(z):
-	return sft(z)  # same as below, just without overflow
-	# return exp(z) / sum(exp(z), axis=0)
+	# return sft(z)  # same as below, just without overflow
+	shifted = z-max(z)
+	return exp(shifted) / sum(exp(shifted), axis=0)
 
 
 def sigmoid_prime(z):

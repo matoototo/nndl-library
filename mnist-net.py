@@ -6,7 +6,9 @@ from mnist import MNIST
 from matplotlib import pyplot
 from scipy.ndimage import rotate
 
-# An example using the nndl library on the MNIST dataset.
+# An example using the NNDL library on the MNIST dataset.
+# It trains two networks, both initialized with the same weights.
+# The only difference is in the activation function used in the final layer.
 
 def one_hot(labels):
 	ys = []
@@ -38,23 +40,21 @@ images_test = array(images_test) / 255.
 labels = one_hot(labels)
 labels_test = one_hot(labels_test)
 
-aug_images, aug_labels = augment(images[0:1000], labels[0:1000], start=-5, end=15, inc=10)
-
 colours = ["b", "g", "r", "c", "m"]
 
-l2 = L2Reg(0.5)
-net1 = Network([Layer(784, 30, sigmoid, l2, 0.0), Layer(30, 10, softmax, l2)])
-l2 = L2Reg(1.5)
-net2 = Network([Layer(784, 30, sigmoid, l2, 0.0), Layer(30, 10, softmax, l2)])
+l2 = L2Reg(5.0)
+net1 = Network([Layer(784, 100, sigmoid, l2), Layer(100, 10, softmax, l2)])
+net1.save('./weights/tmp.pkl')
+
+net2 = Network.load('./weights/tmp.pkl')
+net2.layers[-1].act = sigmoid
+
 nets = [net1, net2]
 for i in range(2):
-	if i == 0: trainer = Trainer(nets[i], CrossEntropy, 0.5, 10, images[0:1000], labels[0:1000], images_test[0:2500], labels_test[0:2500])
-	if i == 1: trainer = Trainer(nets[i], CrossEntropy, 0.5, 10, aug_images[0:3000], aug_labels[0:3000], images_test[0:2500], labels_test[0:2500])
-	data = trainer.SGD(300, tr_acc = False, tr_loss = False)
+	trainer = Trainer(nets[i], CrossEntropy, 0.5, 10, images, labels, images_test, labels_test)
+	data = trainer.SGD(100, tr_acc = True, tr_loss = True)
 	y_points = [point["epoch"] for point in data["test"]]
 	x_points = [point["acc"] for point in data["test"]]
 	pyplot.plot(y_points, x_points, colours[i])
-	x_points = [point["acc"] for point in data["train"]]
-	pyplot.plot(y_points, x_points, colours[i]+"--")
 
 pyplot.show()

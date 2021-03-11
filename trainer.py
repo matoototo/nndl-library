@@ -102,9 +102,9 @@ class Trainer:
 		train = info["train"][-1]
 		print("\x1b[2K") # clear line
 		if (epoch): print("Epoch", test["epoch"]+1)
-		if (te_acc): print("Test Accuracy:", test["acc"], "%")
+		if (te_acc): print("Test Accuracy:", round(test["acc"], 2), "%")
 		if (te_loss): print("Test Loss:", round(test["loss"], 4))
-		if (tr_acc): print("Train Accuracy:", train["acc"], "%")
+		if (tr_acc): print("Train Accuracy:", round(train["acc"], 2), "%")
 		if (tr_loss): print("Train Loss:", round(train["loss"], 4))
 
 	@staticmethod
